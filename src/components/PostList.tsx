@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase-client";
 import { PostItem } from "./PostItem";
+import { FaHeart, FaCommentDots } from "react-icons/fa";
 
 export interface Post {
   comment_count: number;
@@ -14,13 +15,8 @@ export interface Post {
 }
 
 const fetchPosts = async (): Promise<Post[]> => {
-  const { data, error } = await supabase
-    .from("posts")
-    .select("*")
-    .order("created_at", { ascending: false });
-
+  const { data, error } = await supabase.rpc("get_post_with_counts");
   if (error) throw new Error(error.message);
-
   return data as Post[];
 };
 
@@ -76,23 +72,37 @@ export const PostList = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black-900 to-black p-4">
+    <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 p-4">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+          <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
             Your Feed
           </h1>
-          <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full p-2">
+          <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full p-2 hover:scale-105 transition">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
           </button>
         </div>
+
         <div className="space-y-6">
           {data.map((post) => (
-            <PostItem post={post} key={post.id} />
+            <div key={post.id} className="bg-gray-800/30 backdrop-blur-md rounded-xl p-4 border border-gray-700/40 shadow-sm">
+              <PostItem post={post} />
+              <div className="mt-4 flex items-center justify-start gap-6 text-sm text-gray-300">
+                <div className="flex items-center gap-2">
+                  <FaHeart className="text-pink-500" />
+                  <span>{post.like_count ?? 0}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaCommentDots className="text-purple-400" />
+                  <span>{post.comment_count ?? 0}</span>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
+
       </div>
     </div>
   );
